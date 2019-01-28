@@ -2,10 +2,11 @@
 <html>
 <head>
     <meta charset='utf-8' />
-    <title>Foreign Residents in Japan</title>
+    <title>Non-Citizens in Japan</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
+    <link rel="stylesheet" type="text/css" href="css/style.css">
     <style>
         body { margin:0; padding:0; }
         #map { position:absolute; top:0; bottom:0; width:100%; }
@@ -14,15 +15,35 @@
 <body>
 
 <div id='map'></div>
+
+<div id='upper-left'>
+<div class='map-overlay' id='title'><h2>Percentage of Non-Citizens in Japanese Municipalities</h2></div>
+
+<div class='map-overlay' id='info'><h3>Click on a municipality</h3></div>
+</div>
+
+<div class='map-overlay' id='legend'><div id='legend-title'><p>&larr; 0%</p><p>23.3% &rarr;</p></div><canvas id='color-ramp' width='180px' height='30px'></canvas></div>
 <script>
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmlza3dpa21hbiIsImEiOiJjaWxidzVlcGQxcmtxdWJrbjQ2Zng3bWN5In0.KcfLaovMGcEZkl6cyU6_Hw';
 var map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/biskwikman/cjpy3k6kv26q22sss774vak27',
     center: [138, 36],
-    zoom: 5
+    zoom: 4,
+    minZoom: 4
 });
 
+//make legend with canvas
+var canvas = document.getElementById("color-ramp");
+var ctx = canvas.getContext("2d");
+ctx.rect(0, 0, canvas.width, canvas.height);
+var grd = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+grd.addColorStop(0, "#eff3ff");
+grd.addColorStop(1, "#08519c");
+ctx.fillStyle = grd;
+ctx.fill(); 
+
+//add data
 function addMunicipalities(){
     map.addSource('municipalities', {
         type: 'geojson',
@@ -47,13 +68,27 @@ function addMunicipalities(){
 
 map.on('load', addMunicipalities);
 
-map.on('click', 'zones', function (e) {
+//add popups
+/*map.on('click', 'zones', function (e) {
 new mapboxgl.Popup()
 .setLngLat(e.lngLat)
 .setHTML(e.features[0].properties.SEIREI + '\n' +e.features[0].properties.CITY_ENG + '\n' + (e.features[0].properties.FOREIGN_RATIO + '%'))
 .addTo(map);
-});
+});*/
  
+//add mouseover data display
+map.on('mousemove', function(e) {
+    var municipalities = map.queryRenderedFeatures(e.point, {
+      layers: ['zones']
+    });
+    
+    if (municipalities.length > 0) {
+      document.getElementById('info').innerHTML = '<h3><strong>' + municipalities[0].properties.CITY_ENG + '</strong></h3><p><strong><em>' + (municipalities[0].properties.FOREIGN_RATIO) + '% </strong>non-citizens</em><p>';
+    } else {
+      document.getElementById('info').innerHTML = '<p>Hover over a municipality</p>';
+    }
+});
+
 // Change the cursor to a pointer when the mouse is over the states layer.
 map.on('mouseenter', 'zones', function () {
 map.getCanvas().style.cursor = 'pointer';
