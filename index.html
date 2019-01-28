@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Foreign Residents in Japan</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoiYmlza3dpa21hbiIsImEiOiJjaWxidzVlcGQxcmtxdWJrbjQ2Zng3bWN5In0.KcfLaovMGcEZkl6cyU6_Hw';
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/biskwikman/cjpy3k6kv26q22sss774vak27',
+    center: [138, 36],
+    zoom: 5
+});
+
+function addMunicipalities(){
+    map.addSource('municipalities', {
+        type: 'geojson',
+        data: './data/japan-merge.geojson'
+    });
+    //Need to change population from string to number!!
+    map.addLayer({
+        'source': 'municipalities',
+        'id': 'zones',
+        'type': 'fill',
+        'paint': {
+          'fill-color': [
+            'interpolate',
+            ['exponential', 0.6],
+            ['get', 'FOREIGN_RATIO'],
+            0, '#eff3ff',
+            23.3, '#08519c']
+          
+        }
+    });
+}
+
+map.on('load', addMunicipalities);
+
+map.on('click', 'zones', function (e) {
+new mapboxgl.Popup()
+.setLngLat(e.lngLat)
+.setHTML(e.features[0].properties.SEIREI + '\n' +e.features[0].properties.CITY_ENG + '\n' + (e.features[0].properties.FOREIGN_RATIO + '%'))
+.addTo(map);
+});
+ 
+// Change the cursor to a pointer when the mouse is over the states layer.
+map.on('mouseenter', 'zones', function () {
+map.getCanvas().style.cursor = 'pointer';
+});
+ 
+// Change it back to a pointer when it leaves.
+map.on('mouseleave', 'zones', function () {
+map.getCanvas().style.cursor = '';
+});
+  
+</script>
+
+<style>
+  
+.mapboxgl-popup {
+max-width: 400px;
+font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+}
+  
+</style>
+
+</body>
+</html>
