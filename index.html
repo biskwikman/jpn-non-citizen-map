@@ -6,6 +6,7 @@
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <style>
         body { margin:0; padding:0; }
@@ -17,7 +18,7 @@
 <div id='map'></div>
 
 <div id='upper-left'>
-<div class='map-overlay' id='title'><h2>Percentage of Non-Citizens in Japanese Municipalities</h2></div>
+<div class='map-overlay' id='title'><h2>国籍が持っていません人の比率<br/>Percentage of Non-Citizens in Japanese Municipalities</h2></div>
 
 <div class='map-overlay' id='info'><h3>Click on a municipality</h3></div>
 </div>
@@ -64,29 +65,56 @@ function addMunicipalities(){
           
         }
     });
+
+    map.addLayer({
+        "id": "municipality-lines",
+        "type": "line",
+        "source": "municipalities",
+        "paint":{
+            "line-color": "#d0dbed",
+            "line-width": 0.000001
+        }
+    })
+
+    map.addLayer({
+        "id": "municipality-borders",
+        "type": "line",
+        "source": "municipalities",
+        "layout": {},
+        "paint": {
+            "line-color": "black",
+            "line-width": 2
+        },
+        "filter": ["==", "CITY_ENG", ""]
+    });
 }
 
 map.on('load', addMunicipalities);
 
-//add popups
-/*map.on('click', 'zones', function (e) {
-new mapboxgl.Popup()
-.setLngLat(e.lngLat)
-.setHTML(e.features[0].properties.SEIREI + '\n' +e.features[0].properties.CITY_ENG + '\n' + (e.features[0].properties.FOREIGN_RATIO + '%'))
-.addTo(map);
-});*/
- 
 //add mouseover data display
 map.on('mousemove', function(e) {
-    var municipalities = map.queryRenderedFeatures(e.point, {
+    var munis = map.queryRenderedFeatures(e.point, {
       layers: ['zones']
     });
-    
-    if (municipalities.length > 0) {
-      document.getElementById('info').innerHTML = '<h3><strong>' + municipalities[0].properties.CITY_ENG + '</strong></h3><p><strong><em>' + (municipalities[0].properties.FOREIGN_RATIO) + '% </strong>non-citizens</em><p>';
+
+    //logic saying what data to display
+
+    if (munis.length > 0) {
+      document.getElementById('info').innerHTML = '<p>'+ munis[0].properties.KEN + '<br/>' + munis[0].properties.SICHO + '<br/>' + munis[0].properties.SIKUCHOSON + '<br/><strong>' + munis[0].properties.CITY_ENG + '</strong></p><p><strong>' + (munis[0].properties.FOREIGN_RATIO) + '% </strong>non-citizens<p>';
     } else {
       document.getElementById('info').innerHTML = '<p>Hover over a municipality</p>';
     }
+});
+
+//fly to clicked feature
+map.on('click', 'zones', function(e) {
+    let bbox = turf.bbox(e.features[0]);
+    map.fitBounds(bbox, {padding: 50});
+});
+
+//hover
+map.on('click', 'zones', function(e) {
+    map.setFilter("municipality-borders", ["==", "CITY_ENG", e.features[0].properties.CITY_ENG]);
 });
 
 // Change the cursor to a pointer when the mouse is over the states layer.
