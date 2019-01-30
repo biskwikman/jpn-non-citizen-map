@@ -18,7 +18,7 @@
 <div id='map'></div>
 
 <div id='upper-left'>
-<div class='map-overlay' id='title'><h2>国籍が持っていません人の比率<br/>Percentage of Non-Citizens in Japanese Municipalities</h2></div>
+<div class='map-overlay' id='title'><h2>国籍を持っていない人の比率<br/>Percentage of Non-Citizens in Japanese Municipalities</h2></div>
 
 <div class='map-overlay' id='info'><p>Click on a municipality</p></div>
 </div>
@@ -100,7 +100,7 @@ map.on('mousemove', function(e) {
     //logic saying what data to display
 
     if (munis.length > 0) {
-      document.getElementById('info').innerHTML = '<p>'+ munis[0].properties.KEN + '<br/>' + munis[0].properties.SIKUCHOSON + '<br/><strong>' + munis[0].properties.CITY_ENG + '</strong></p><p><strong>' + (munis[0].properties.FOREIGN_RATIO) + '% </strong>non-citizens<p>';
+      document.getElementById('info').innerHTML = '<p>'+ munis[0].properties.KEN + '<br/>' + munis[0].properties.SIKUCHOSON + '<br/><strong>' + munis[0].properties.CITY_ENG + '</strong></p><p><strong>' + (munis[0].properties.FOREIGN_RATIO) + '% </strong>外国籍/non-citizens<p>';
     } else {
       document.getElementById('info').innerHTML = '<p>Click on a municipality</p>';
     }
